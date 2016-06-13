@@ -1,4 +1,4 @@
-LIBMONETRA JAVA v0.9.4
+LIBMONETRA JAVA v0.9.5
 
 ================
 Revision History
