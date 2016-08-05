@@ -1444,12 +1444,12 @@ public class MONETRA {
 		return Integer.valueOf(str);
 	}
 	
-	public int TransactionID(long identifier)
+	public long TransactionID(long identifier)
 	{
 		String str = ResponseParam(identifier, "ttid");
 		if (str == null)
 			return -1;
-		return Integer.valueOf(str);
+		return Long.parseLong(str, 10);
 	}
 	
 	public int TransactionAVS(long identifier)
