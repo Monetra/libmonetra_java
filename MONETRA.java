@@ -824,17 +824,18 @@ public class MONETRA {
 	{
 		Boolean on_quote;
 		int beginsect;
+		int num_sects;
+
 		if (data == null || data.length == 0)
 			return null;
 
 		/* We need to first count how many lines we have */
+		num_sects = 1;
 		on_quote  = false;
-		beginsect = 0;
-		int num_lines = 0;
 		for (int i=0; i<data.length; i++) {
 			if (quote_char != 0 && data[i] == quote_char) {
 				/* Doubling the quote char acts as escaping */
-				if (data[i+1] == quote_char) {
+				if (on_quote && data.length - i > 1 && data[i+1] == quote_char) {
 					i++;
 					continue;
 				} else if (on_quote) {
@@ -844,16 +845,13 @@ public class MONETRA {
 				}
 			}
 			if (data[i] == delim && !on_quote) {
-				num_lines++;
-				beginsect = i+1;
-				if (max_sects != 0 && num_lines == max_sects-1)
+				num_sects++;
+				if (max_sects != 0 && num_sects == max_sects)
 					break;
 			}
 		}
-		if (beginsect < data.length)
-			num_lines++;
 
-		byte[][] ret = new byte[num_lines][];
+		byte[][] ret = new byte[num_sects][];
 		beginsect     = 0;
 		int cnt       = 0;
 		on_quote      = false;
@@ -861,7 +859,7 @@ public class MONETRA {
 		for (int i=0; i<data.length; i++) {
 			if (quote_char != 0 && data[i] == quote_char) {
 				/* Doubling the quote char acts as escaping */
-				if (data[i+1] == quote_char) {
+				if (on_quote && data.length - i > 1 && data[i+1] == quote_char) {
 					i++;
 					continue;
 				} else if (on_quote) {
@@ -873,13 +871,14 @@ public class MONETRA {
 			if (data[i] == delim && !on_quote) {
 				ret[cnt++] = byteArraySubStr(data, beginsect, i - beginsect);
 				beginsect = i + 1;
-				if (max_sects != 0&& cnt == max_sects - 1)
+				if (cnt == num_sects)
 					break;
 			}
 		}
-		if (beginsect < data.length) {
+		if (cnt != num_sects) {
 			ret[cnt++] = byteArraySubStr(data, beginsect, data.length - beginsect);
 		}
+
 		return ret;
 	}
 	
@@ -926,13 +925,22 @@ public class MONETRA {
 
 	private static String M_remove_dupe_quotes(byte[] str)
 	{
+		int i = 0;
+		int len = str.length;
+
 		/* No quotes */
 		if (byteArrayChr(str, (byte)'"') == -1)
 			return byteArrayToString(str);
 
+		/* Surrounding quotes, remove */
+		if (str[0] == (byte)'"' && str[len-1] == (byte)'"') {
+			i   += 1;
+			len -= 1;
+		}
+
 		ByteArrayOutputStream out_str = new ByteArrayOutputStream();
-		for (int i=0; i<str.length; i++) {
-			if (str[i] == (byte)'"' && i < str.length-1 && str[i+1] == (byte)'"') {
+		for ( ; i<len; i++) {
+			if (str[i] == (byte)'"' && i < len-1 && str[i+1] == (byte)'"') {
 				out_str.write((byte)'"');
 				i++;
 			} else if (str[i] != (byte)'"') {
@@ -1200,8 +1208,17 @@ public class MONETRA {
 	private static String[][] parsecsv(byte[] data, byte delimiter, byte enclosure)
 	{
 		byte[][] lines = byteArrayExplode((byte)'\n', data, enclosure, 0);
-		String[][] csv = new String[lines.length][];
-		for (int i=0; i<lines.length; i++) {
+		String[][] csv;
+		int line_cnt;
+
+		/* Strip any trailing blank lines */
+		for (line_cnt = lines.length; line_cnt > 0 && lines[line_cnt-1].length == 0; line_cnt--) {
+			/* Do nothing */
+		}
+
+		csv = new String[line_cnt][];
+
+		for (int i=0; i<line_cnt; i++) {
 			byte[][] cells = byteArrayExplode(delimiter, lines[i], enclosure, 0);
 			csv[i] = new String[cells.length];
 			for (int j=0; j<cells.length; j++) {
