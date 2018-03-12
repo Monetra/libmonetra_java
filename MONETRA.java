@@ -832,7 +832,7 @@ public class MONETRA {
 		/* We need to first count how many lines we have */
 		num_sects = 1;
 		on_quote  = false;
-		for (int i=0; i<data.length; i++) {
+		for (int i=0; i<data.length && (max_sects == 0 || num_sects < max_sects); i++) {
 			if (quote_char != 0 && data[i] == quote_char) {
 				/* Doubling the quote char acts as escaping */
 				if (on_quote && data.length - i > 1 && data[i+1] == quote_char) {
@@ -846,17 +846,15 @@ public class MONETRA {
 			}
 			if (data[i] == delim && !on_quote) {
 				num_sects++;
-				if (max_sects != 0 && num_sects == max_sects)
-					break;
 			}
 		}
 
 		byte[][] ret = new byte[num_sects][];
 		beginsect     = 0;
-		int cnt       = 0;
+		int cnt       = 1;
 		on_quote      = false;
 
-		for (int i=0; i<data.length; i++) {
+		for (int i=0; i<data.length && cnt < num_sects; i++) {
 			if (quote_char != 0 && data[i] == quote_char) {
 				/* Doubling the quote char acts as escaping */
 				if (on_quote && data.length - i > 1 && data[i+1] == quote_char) {
@@ -869,15 +867,13 @@ public class MONETRA {
 				}
 			}
 			if (data[i] == delim && !on_quote) {
-				ret[cnt++] = byteArraySubStr(data, beginsect, i - beginsect);
-				beginsect = i + 1;
-				if (cnt == num_sects)
-					break;
+				ret[cnt-1] = byteArraySubStr(data, beginsect, i - beginsect);
+				beginsect  = i + 1;
+				cnt++;
 			}
 		}
-		if (cnt != num_sects) {
-			ret[cnt++] = byteArraySubStr(data, beginsect, data.length - beginsect);
-		}
+		/* Capture last segment */
+		ret[cnt-1] = byteArraySubStr(data, beginsect, data.length - beginsect);
 
 		return ret;
 	}
