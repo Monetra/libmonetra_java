@@ -1,4 +1,4 @@
-LIBMONETRA JAVA v0.9.5
+LIBMONETRA JAVA v0.9.6
 
 ================
 Revision History
@@ -13,6 +13,7 @@ Revision History
  * 0.9.4 - Fix parser, encapsulation character was set as comma instead of a
            double quote
  * 0.9.5 - Fix large response handling
+ * 0.9.6 - Fix CSV Parsing
 
 ========
 Overview
