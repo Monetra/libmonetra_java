@@ -53,7 +53,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class MONETRA {
-	public static final String version = "0.9.5";
+	public static final String version = "0.9.6";
 
 	/* Base implementation, emulate our libmonetra API as closely as possible */
 
